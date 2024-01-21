@@ -5,9 +5,9 @@ register_blueprint "buff_berserk"
         name = "Berserk!",
         desc = "Big damage resistance, faster movement, increased melee damage, but melee only white it lasts.",
         weapon_fail = "GUNS ARE FOR WUSSES! RIP AND TEAR!",
-        tech_smoke_fail = "SMOKE IS FOR WUSSES! RIP AND TEAR!",
         kill_text = "RIP AND TEAR! RIP AND TEAR!",
         door_kill_text = "KNOCK, KNOCK. WHO'S THERE? ME!",
+        environmental_object_kill_text = "CHOO CHOO CHA'BOOGIE!",
     },
     data = {
         resource_before = 0
@@ -47,38 +47,17 @@ register_blueprint "buff_berserk"
                             return -1
                         end
                     end
-                    local klass = gtk.get_klass_id( entity )
-                    if klass == "tech" then
-                        local resource = entity:child( "resource_power" )
-                        self.data.resource_before = resource.attributes.value
-                    end
                 end
                 return 0
-            end
-        ]],
-        on_post_command = [[
-            function ( self, actor, cmt, tgt, time )
-                -- Refund tech smoke cost as it won't work
-                if cmt == COMMAND_USE then
-                    local klass = gtk.get_klass_id( actor )
-                    if klass == "tech" then
-                        local resource = actor:child( "resource_power" )
-                        local smoke_screen = actor:child("ktrait_smoke_screen")
-                        local smoke_used_resource = self.data.resource_before - smoke_screen.skill.cost
-                        if smoke_screen then
-                            if smoke_used_resource == resource.attributes.value then
-                                resource.attributes.value = self.data.resource_before
-                                ui:set_hint( "{R"..self.text.tech_smoke_fail.."}", 2001, 0 )
-                            end
-                        end
-                    end
-                end
             end
         ]],
         on_aim = [[
             function ( self, entity, target, weapon )
                 if target and weapon then
-                    if ( weapon.weapon and weapon.weapon.type ~= world:hash("melee") ) or ( weapon.skill and ( weapon.skill.weapon and ( not weapon.skill.melee ) ) ) then
+                    if ( weapon.weapon and weapon.weapon.group == world:hash("env") ) then
+                        return 0
+                    end
+                    if ( weapon.weapon and weapon.weapon.type ~= world:hash("melee") ) or ( weapon.skill and weapon.skill.weapon and not weapon.skill.melee ) then
                         return -1
                     end
                 end
@@ -88,6 +67,8 @@ register_blueprint "buff_berserk"
             function ( self, entity, target, weapon )
                 if target and target.text and target.text.name == "door" then
                     ui:set_hint( "{R"..self.text.door_kill_text.."}", 2001, 0 )
+                elseif not (target.data and target.data.ai) then
+                    ui:set_hint( "{R"..self.text.environmental_object_kill_text.."}", 2001, 0 )
                 else
                     ui:set_hint( "{R"..self.text.kill_text.."}", 2001, 0 )
                 end
