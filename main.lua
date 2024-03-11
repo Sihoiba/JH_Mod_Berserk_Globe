@@ -30,7 +30,7 @@ register_blueprint "buff_berserk"
             impact = 90,
             pierce = 90,
             plasma = 90,
-            fire = 90,
+            ignite = 90,
             cold = 90,
             acid = 90,
             toxin = 90,
