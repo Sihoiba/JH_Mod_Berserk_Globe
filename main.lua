@@ -65,6 +65,7 @@ register_blueprint "buff_berserk"
         ]],
         on_kill = [[
             function ( self, entity, target, weapon )
+                if entity ~= world:get_player() then return 0 end
                 local is_door = false
                 local level = world:get_level()
                 local c = world:get_position(target)
