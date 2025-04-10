@@ -10,7 +10,10 @@ register_blueprint "buff_berserk"
         environmental_object_kill_text = "CHOO CHOO CHA'BOOGIE!",
     },
     data = {
-        resource_before = 0
+        resource_before = 0,
+        trigger_kill_text = true,
+        trigger_door_kill_text = true,
+        trigger_environmental_kill_text = true,
     },
     ui_buff = {
         color     = RED,
@@ -42,7 +45,7 @@ register_blueprint "buff_berserk"
                 self.attributes.initialized = 1
                 if command == COMMAND_USE then
                     if w then
-                        if ( w.weapon and w.weapon.type ~= world:hash("melee") ) or ( w.skill and ( w.skill.weapon and ( not w.skill.melee ) ) ) then
+                        if (w.weapon and not gtk.is_melee( w )) or ( w.skill and ( w.skill.weapon and ( not w.skill.melee ) ) ) then
                             ui:set_hint( "{R"..self.text.weapon_fail.."}", 2001, 0 )
                             return -1
                         end
@@ -57,7 +60,7 @@ register_blueprint "buff_berserk"
                     if ( weapon.weapon and weapon.weapon.group == world:hash("env") ) then
                         return 0
                     end
-                    if ( weapon.weapon and weapon.weapon.type ~= world:hash("melee") ) or ( weapon.skill and weapon.skill.weapon and not weapon.skill.melee ) then
+                    if (weapon.weapon and not gtk.is_melee( weapon )) or ( weapon.skill and weapon.skill.weapon and not weapon.skill.melee ) then
                         return -1
                     end
                 end
@@ -74,10 +77,17 @@ register_blueprint "buff_berserk"
                     is_door = true
                 end
                 if is_door then
-                    ui:set_hint( "{R"..self.text.door_kill_text.."}", 2001, 0 )
-                elseif not (target.data and target.data.ai) then
-                    ui:set_hint( "{R"..self.text.environmental_object_kill_text.."}", 2001, 0 )
-                else
+                    if self.data.trigger_door_kill_text then
+                        self.data.trigger_door_kill_text = false
+                        ui:set_hint( "{R"..self.text.door_kill_text.."}", 2001, 0 )
+                    end
+                elseif target and not (target.data and target.data.ai) then
+                    if self.data.trigger_environmental_kill_text then
+                        self.data.trigger_environmental_kill_text = false
+                        ui:set_hint( "{R"..self.text.environmental_object_kill_text.."}", 2001, 0 )
+                    end
+                elseif self.data.trigger_kill_text then
+                    self.data.trigger_kill_text = false
                     ui:set_hint( "{R"..self.text.kill_text.."}", 2001, 0 )
                 end
             end
